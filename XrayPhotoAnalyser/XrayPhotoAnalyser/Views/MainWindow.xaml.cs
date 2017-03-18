@@ -25,28 +25,5 @@ namespace XrayPhotoAnalyser
         {
             InitializeComponent();
         }
-
-        private void LoadImageBtn_Click(object sender, RoutedEventArgs e)
-        {
-            var image = new DicomImage(@"C:\Users\Kowal\Desktop\xr_chest.dcm");
-
-            //string filePath = @"C:\Users\Kowal\Source\Repos\XrayAnalyser\XrayPhotoAnalyser\XrayPhotoAnalyser\Images\test" + Guid.NewGuid() +".jpg";
-            string filePath = @"C:\Users\Kowal\Source\Repos\XrayAnalyser\XrayPhotoAnalyser\XrayPhotoAnalyser\Images\test.jpg";
-
-            //image.RenderImage().Save(filePath);
-
-            Image i = new Image();
-            BitmapImage src = new BitmapImage();
-
-            src.BeginInit();
-            src.UriSource = new Uri(filePath, UriKind.Absolute);
-            src.CacheOption = BitmapCacheOption.OnLoad;
-            src.EndInit();
-
-            i.Source = src;
-            i.Stretch = Stretch.Uniform;
-            
-            LoadedXrayImage.Children.Add(i);
-        }
     }
 }

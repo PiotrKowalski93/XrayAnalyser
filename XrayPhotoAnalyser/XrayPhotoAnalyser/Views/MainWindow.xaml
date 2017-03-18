@@ -8,12 +8,13 @@
         Title="Xray Photo Analyser" 
         Height="550" 
         Width="1300"
-        WindowStartupLocation="CenterScreen" Icon="/XrayPhotoAnalyser;component/Icons/Icon.jpg">
+        WindowStartupLocation="CenterScreen" Icon="/XrayPhotoAnalyser;component/Icons/Icon.jpg"
+        DataContext="{Binding Main, Source={StaticResource Locator}}">
     <Grid Background="#FFA29F9F">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="0.6*"/>
+            <ColumnDefinition Width="0.4*"/>
+            <ColumnDefinition/>            
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column="0">
@@ -22,25 +23,40 @@
                 <RowDefinition Height="0.2*"/>
             </Grid.RowDefinitions>
 
-            <StackPanel x:Name="LoadedXrayImage" Grid.Row="0" Margin="10,10" Background="#FFBFBCBC"/>
-
+            <StackPanel Grid.Row="0" Margin="10,10" Background="#FFBFBCBC">
+                <Image x:Name="LoadedXrayImage" Source="{Binding Path=LoadedImage}" />
+            </StackPanel>
+            
             <Grid Grid.Row="1">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <Button x:Name="LoadImageBtn" Content="Load Image" Grid.Row="0" Height="30" Width="160" Click="LoadImageBtn_Click"/>
-                <Button x:Name="SegmentImageBtn" Content="Run Segmentation" Grid.Row="1" Height="30" Width="160"/>
+                <Button x:Name="LoadImageBtn" Command="{Binding Path=LoadImageCommand}" Content="Load Image" Grid.Row="0" Height="30" Width="160"/>
+                <Button x:Name="SegmentImageBtn" Command="{Binding Path=ClickCommand}" Content="Run Segmentation" Grid.Row="1" Height="30" Width="160"/>
             </Grid>
         </Grid>
 
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Button x:Name="InvertButton" Command="{Binding Path=InvertColorsCommand}" Content="Invert Colours-->" Margin="5,5" Height="25" Width="100" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+        </Grid>
+
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition Height="0.2*"/>
             </Grid.RowDefinitions>
-            
-            <StackPanel x:Name="SegmentedXrayImage" Grid.Row="0" Margin="10,10" Background="#FFBFBCBC"/>
+
+            <StackPanel Grid.Row="0" Margin="10,10" Background="#FFBFBCBC">
+                <Image x:Name="ChangedXrayImage" Source="{Binding Path=ChangedXrayBitmapImage}"/>
+            </StackPanel>
         </Grid>
 
         <Grid Grid.Column="2">
