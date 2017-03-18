@@ -13,6 +13,7 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Ioc;
 using Microsoft.Practices.ServiceLocation;
 using XrayPhotoAnalyser.Converters;
+using XrayPhotoAnalyser.Services;
 
 namespace XrayPhotoAnalyser.ViewModels
 {
@@ -36,6 +37,7 @@ namespace XrayPhotoAnalyser.ViewModels
             else
             {
                 SimpleIoc.Default.Register<IBitmapConverter, BitmapConverter>();
+                SimpleIoc.Default.Register<IImageModificatorService, ImageModificatorService>();
             }
 
             SimpleIoc.Default.Register<MainViewModel>();

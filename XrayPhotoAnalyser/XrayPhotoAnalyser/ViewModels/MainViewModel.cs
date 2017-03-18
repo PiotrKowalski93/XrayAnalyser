@@ -10,6 +10,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using XrayPhotoAnalyser.Converters;
+using XrayPhotoAnalyser.Services;
+using XrayPhotoAnalyser.Views;
 using Controls = System.Windows.Controls;
 using Drawing = System.Drawing;
 
@@ -23,6 +25,7 @@ namespace XrayPhotoAnalyser.ViewModels
     /// </summary>
     public class MainViewModel : ViewModelBase
     {
+        #region Properties
         private BitmapImage changedXrayBitmapImage;
         public BitmapImage ChangedXrayBitmapImage {
             get
@@ -41,7 +44,7 @@ namespace XrayPhotoAnalyser.ViewModels
         {
             get
             {
-                return isBusy;
+                return !isBusy;
             }
             set
             {
@@ -62,21 +65,28 @@ namespace XrayPhotoAnalyser.ViewModels
                 RaisePropertyChanged("LoadedImage");
             }
         }
+        #endregion
 
         public ICommand LoadImageCommand { get; set; }
         public ICommand InvertColorsCommand { get; set; }
+        public ICommand StartOtsuMethodCommaand { get; set; }
+        public ICommand BasicThresholdingCommand { get; set; }
+        public ICommand ShowChartsCommand { get; set; }
 
         private Bitmap xrayBitmap;
-        private Bitmap changedXrayBitmap;
-
         private IBitmapConverter _bitmapConverter;
+        private IImageModificatorService _imageModyficator;
 
-        public MainViewModel(IBitmapConverter bitmapConverter)
+        public MainViewModel(IImageModificatorService imageModificator, IBitmapConverter bitmapConverter)
         {
             _bitmapConverter = bitmapConverter;
+            _imageModyficator = imageModificator;
 
             LoadImageCommand = new RelayCommand(LoadImageAndSameAsJpg);
             InvertColorsCommand = new RelayCommand(InvertColours);
+            StartOtsuMethodCommaand = new RelayCommand(StartOtsuMethod);
+            BasicThresholdingCommand = new RelayCommand(BasicThresholding);
+            ShowChartsCommand = new RelayCommand(ShowCharts);
         }
 
         public void LoadImageAndSameAsJpg()
@@ -85,7 +95,7 @@ namespace XrayPhotoAnalyser.ViewModels
             fd.ShowDialog();
 
             string dcmImagePath = fd.FileName;
-            
+
             var image = new DicomImage(dcmImagePath);
 
             string filePath = @"C:\Users\Kowal\Source\Repos\XrayAnalyser\XrayPhotoAnalyser\XrayPhotoAnalyser\Images\test.jpg";
@@ -97,35 +107,44 @@ namespace XrayPhotoAnalyser.ViewModels
             src.UriSource = new Uri(filePath, UriKind.Absolute);
             src.CacheOption = BitmapCacheOption.OnLoad;
             src.EndInit();
-            
+
             xrayBitmap = _bitmapConverter.BitmapImage2Bitmap(src);
 
             LoadedImage = filePath;
         }
-
-        public void InvertColours()
+                 
+        private void ShowCharts()
         {
-            Bitmap temp = xrayBitmap;
-            Bitmap bmap = (Bitmap)temp.Clone();
-
-            Drawing.Color c;
-
-            for (int i = 0; i < bmap.Width; i++)
-            {
-                for (int j = 0; j < bmap.Height; j++)
-                {
-                    c = bmap.GetPixel(i, j);
-                    bmap.SetPixel(i, j,
-                    Drawing.Color.FromArgb(255 - c.R, 255 - c.G, 255 - c.B));
-                }
-            }
-
-            changedXrayBitmap = (Bitmap)bmap.Clone();
-
-            ChangedXrayBitmapImage = _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+            ChartsView chv = new ChartsView();
+            chv.Show();
         }
 
-       
+        private async void InvertColours()
+        {
+            IsBusy = true;
+
+            ChangedXrayBitmapImage = await _imageModyficator.InvertColoursAsync(xrayBitmap);
+
+            IsBusy = false;
+        }
+
+        private async void StartOtsuMethod()
+        {
+            IsBusy = true;
+
+            ChangedXrayBitmapImage = await _imageModyficator.OtsuMethodAsync(xrayBitmap);
+
+            IsBusy = false;
+        }
+
+        private async void BasicThresholding()
+        {
+            IsBusy = true;
+
+            ChangedXrayBitmapImage = await _imageModyficator.HistogramBasedSegmentationAsync(xrayBitmap);
+
+            IsBusy = false;
+        }
 
     }
 }

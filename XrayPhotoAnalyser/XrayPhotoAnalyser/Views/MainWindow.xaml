@@ -10,7 +10,7 @@
         Width="1300"
         WindowStartupLocation="CenterScreen" Icon="/XrayPhotoAnalyser;component/Icons/Icon.jpg"
         DataContext="{Binding Main, Source={StaticResource Locator}}">
-    <Grid Background="#FFA29F9F">
+    <Grid Background="#FFA29F9F" IsEnabled="{Binding Path=IsBusy}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition Width="0.4*"/>
@@ -33,7 +33,7 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
                 <Button x:Name="LoadImageBtn" Command="{Binding Path=LoadImageCommand}" Content="Load Image" Grid.Row="0" Height="30" Width="160"/>
-                <Button x:Name="SegmentImageBtn" Command="{Binding Path=ClickCommand}" Content="Run Segmentation" Grid.Row="1" Height="30" Width="160"/>
+                <Button x:Name="SegmentImageBtn" Command="{Binding Path=ShowChartsCommand}" Content="Show Statistics" Grid.Row="1" Height="30" Width="160"/>
             </Grid>
         </Grid>
 
@@ -43,9 +43,9 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-
-            <Button x:Name="InvertButton" Command="{Binding Path=InvertColorsCommand}" Content="Invert Colours-->" Margin="5,5" Height="25" Width="100" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
+            <Button x:Name="InvertButton" Command="{Binding Path=InvertColorsCommand}" Content="Invert Colors -->" Grid.Row="0" Margin="5,5"/>
+            <Button x:Name="BasicThresholdingButton" Command="{Binding Path=BasicThresholdingCommand}" Content="Basic Thresholding -->" Margin="5,5" Grid.Row="1" />
+            <Button x:Name="OtsuButton" Command="{Binding Path=StartOtsuMethodCommaand}" Content="Otsu Method Thresholding -->" Grid.Row="2" Margin="5,5" />
         </Grid>
 
         <Grid Grid.Column="2">
