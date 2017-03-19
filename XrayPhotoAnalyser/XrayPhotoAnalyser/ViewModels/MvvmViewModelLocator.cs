@@ -41,6 +41,7 @@ namespace XrayPhotoAnalyser.ViewModels
             }
 
             SimpleIoc.Default.Register<MainViewModel>();
+            SimpleIoc.Default.Register<ChartsViewModel>();
         }
 
         /// <summary>
@@ -56,5 +57,14 @@ namespace XrayPhotoAnalyser.ViewModels
                 return ServiceLocator.Current.GetInstance<MainViewModel>();
             }
         }
+
+        public ChartsViewModel Charts
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<ChartsViewModel>();
+            }
+        }
+
     }
 }

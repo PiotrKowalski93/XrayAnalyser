@@ -23,5 +23,6 @@ namespace XrayPhotoAnalyser.Views
         {
             InitializeComponent();
         }
+
     }
 }
