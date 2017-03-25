@@ -109,6 +109,7 @@
     </Compile>
     <Compile Include="Converters\BitmapConverter.cs" />
     <Compile Include="Converters\IBitmapConverter.cs" />
+    <Compile Include="Models\GlobalData.cs" />
     <Compile Include="Services\IImageModificator.cs" />
     <Compile Include="Services\ImageModificator.cs" />
     <Compile Include="ViewModels\ChartsViewModel.cs" />
@@ -155,7 +156,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Images\" />
-    <Folder Include="Models\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

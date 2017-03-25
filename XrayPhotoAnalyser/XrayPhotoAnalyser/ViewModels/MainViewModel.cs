@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using XrayPhotoAnalyser.Converters;
+using XrayPhotoAnalyser.Models;
 using XrayPhotoAnalyser.Services;
 using XrayPhotoAnalyser.Views;
 using Controls = System.Windows.Controls;
@@ -82,14 +83,14 @@ namespace XrayPhotoAnalyser.ViewModels
             _bitmapConverter = bitmapConverter;
             _imageModyficator = imageModificator;
 
-            LoadImageCommand = new RelayCommand(LoadImageAndSameAsJpg);
+            LoadImageCommand = new RelayCommand(LoadImageAndSaveAsJpg);
             InvertColorsCommand = new RelayCommand(InvertColours);
             StartOtsuMethodCommaand = new RelayCommand(StartOtsuMethod);
             BasicThresholdingCommand = new RelayCommand(BasicThresholding);
             ShowChartsCommand = new RelayCommand(ShowCharts);
         }
 
-        public void LoadImageAndSameAsJpg()
+        public void LoadImageAndSaveAsJpg()
         {
             OpenFileDialog fd = new OpenFileDialog();
             fd.ShowDialog();
@@ -99,7 +100,6 @@ namespace XrayPhotoAnalyser.ViewModels
             var image = new DicomImage(dcmImagePath);
 
             string filePath = @"C:\Users\Kowal\Source\Repos\XrayAnalyser\XrayPhotoAnalyser\XrayPhotoAnalyser\Images\test.jpg";
-
             image.RenderImage().Save(filePath);
 
             BitmapImage src = new BitmapImage();
@@ -110,6 +110,9 @@ namespace XrayPhotoAnalyser.ViewModels
 
             xrayBitmap = _bitmapConverter.BitmapImage2Bitmap(src);
 
+            GlobalData.XrayBitmap = src;
+
+            GlobalData.SavedJPGImagePath = filePath;
             LoadedImage = filePath;
         }
                  

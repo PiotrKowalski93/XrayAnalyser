@@ -10,6 +10,12 @@
         Icon="/XrayPhotoAnalyser;component/Icons/Icon.jpg"
         DataContext="{Binding Charts, Source={StaticResource Locator}}"
         Title="Xray Photo Analyser - Charts" Height="500" Width="1300">
+    <Window.Resources>
+        <Style x:Key="InvisibleDataPoint" TargetType="{x:Type chartingToolkit:DataPoint}">
+            <Setter Property="Background" Value="Black"/>
+            <Setter Property="Template" Value="{x:Null}"/>
+        </Style>
+    </Window.Resources>
     <Grid Background="#FFA29F9F">
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -25,29 +31,29 @@
             </Grid.ColumnDefinitions>
             
             <StackPanel Grid.Column="0" Width="450" Margin="5,5" Background="#FFBFBCBC">
-                <Image x:Name="LoadedImage" Source="{Binding Path=LoadedImage}" />
+                <Image x:Name="LoadedImage" Source="{Binding Path=ImageBitmap}" />
             </StackPanel>
 
-            <Slider Grid.Column="1" Orientation="Vertical"  Margin="5,5" />
+            <Slider Grid.Column="1" Maximum="100" Value="{Binding VerticalSliderValue}" Orientation="Vertical"  Margin="5,5" />
 
-            <chartingToolkit:Chart  x:Name="lineChartHorizontal" Grid.Column="2" Title="Horizontal Brightness" Margin="5,5" Width="390">
+            <chartingToolkit:Chart  x:Name="lineChartHorizontal" Grid.Column="2" Title="Horizontal Brightness" Margin="5,5" Width="390" IsEnabled="{Binding IsBusy}">
                 <chartingToolkit:Chart.LegendStyle>
                     <Style TargetType="Control">
                         <Setter Property="Width" Value="0"/>
                         <Setter Property="Height" Value="0"/>
                     </Style>
                 </chartingToolkit:Chart.LegendStyle>
-                <chartingToolkit:LineSeries  DependentValuePath="Value" IndependentValuePath="Key" ItemsSource="{Binding}" IsSelectionEnabled="True"/>           
+                <chartingToolkit:LineSeries  DependentValuePath="Value" DataPointStyle="{StaticResource InvisibleDataPoint}" IndependentValuePath="Key" ItemsSource="{Binding HorizontalBrightness}" IsSelectionEnabled="True"/>           
             </chartingToolkit:Chart>
 
-            <chartingToolkit:Chart  x:Name="lineChartVertical" Grid.Column="3" Title="Vertical Brightness" Margin="5,5" Width="390">
+            <chartingToolkit:Chart  x:Name="lineChartVertical" Grid.Column="3" Title="Vertical Brightness" Margin="5,5" Width="390" IsEnabled="{Binding IsBusy}">
                 <chartingToolkit:Chart.LegendStyle>
                     <Style TargetType="Control">
                         <Setter Property="Width" Value="0"/>
                         <Setter Property="Height" Value="0"/>
                     </Style>
                 </chartingToolkit:Chart.LegendStyle>
-                <chartingToolkit:LineSeries DependentValuePath="Value" IndependentValuePath="Key" ItemsSource="{Binding}" IsSelectionEnabled="True"/>
+                <chartingToolkit:LineSeries DependentValuePath="Value" DataPointStyle="{StaticResource InvisibleDataPoint}" IndependentValuePath="Key" ItemsSource="{Binding VerticalBrightness}" IsSelectionEnabled="True"/>
             </chartingToolkit:Chart>
         </Grid>
 
@@ -58,8 +64,8 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Slider Grid.Column="0" Orientation="Horizontal" Width="450" Margin="5,5" />
-            <Button x:Name="GenerateCharts" Margin="5,5" Width="200" Grid.Column="2" Content="Generate" />
+            <Slider Grid.Column="0" Maximum="100" Value="{Binding HorizontalSliderValue}" Orientation="Horizontal" Width="450" Margin="5,5" />
+            <Button x:Name="GenerateCharts" Margin="5,5" Width="200" Grid.Column="2" IsEnabled="{Binding IsBusy}" Content="Generate" Command="{Binding GenerateChartsCommand}"/>
         </Grid>
               
               

@@ -46,12 +46,60 @@ namespace XrayPhotoAnalyser.Services
         public async Task<BitmapImage> OtsuMethodAsync(Bitmap xrayBitmap)
         {
             return await Task.Run(() =>
-            {
-                // Dobor progu jasnosci TODO
-                float t = 0.8F;
-
+            {      
+                // Clonowanie bitmapy
                 Bitmap temp = xrayBitmap;
                 Bitmap bmap = (Bitmap)temp.Clone();
+
+                // Hoitogram z poziomami jasnosci od 0 do 255
+                int[] histogram = new int[256];
+
+                // Przygotowanie histogramu szarości
+                for (int i = 0; i < xrayBitmap.Width; i++)
+                {
+                    for (int j = 0; j < xrayBitmap.Height; j++)
+                    {
+                        int brightness = (int)Math.Round(xrayBitmap.GetPixel(i,j).GetBrightness() * 255.0);
+                        histogram[brightness]++;
+                    }
+                }
+
+                // Zliczenie pikseli
+                int totalPixels = xrayBitmap.Width * xrayBitmap.Height;
+
+                float sum = 0;
+                for (int t = 0; t < 256; t++) sum += t * histogram[t];
+
+                float sumB = 0;
+                int wB = 0;
+                int wF = 0;
+
+                float varMax = 0;
+                int threshold = 0;
+                
+                for (int i = 0; i < 256; i++)
+                {
+                    wB += histogram[i];               // Weight Background
+                    if (wB == 0) continue;
+
+                    wF = totalPixels - wB;                 // Weight Foreground
+                    if (wF == 0) break;
+
+                    sumB += (float)(i * histogram[i]);
+
+                    float mB = sumB / wB;            // Mean Background
+                    float mF = (sum - sumB) / wF;    // Mean Foreground
+
+                    // Calculate Between Class Variance
+                    float varBetween = (float)wB * (float)wF * (mB - mF) * (mB - mF);
+
+                    // Check if new maximum found
+                    if (varBetween > varMax)
+                    {
+                        varMax = varBetween;
+                        threshold = i;
+                    }
+                }
 
                 Color c;
 
@@ -59,9 +107,9 @@ namespace XrayPhotoAnalyser.Services
                 {
                     for (int j = 0; j < bmap.Height; j++)
                     {
-                        float brightness = bmap.GetPixel(i, j).GetBrightness();
+                        int brightness = (int)Math.Round(bmap.GetPixel(i, j).GetBrightness() * 255.0);
 
-                        if (brightness >= t)
+                        if (brightness >= threshold)
                         {
                             bmap.SetPixel(i, j, Color.White);
                         }
@@ -69,7 +117,6 @@ namespace XrayPhotoAnalyser.Services
                         {
                             bmap.SetPixel(i, j, Color.Black);
                         }
-
                     }
                 }
 
