@@ -42,10 +42,16 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Button x:Name="InvertButton" Command="{Binding Path=InvertColorsCommand}" Content="Invert Colors -->" Grid.Row="0" Margin="5,5"/>
-            <Button x:Name="BasicThresholdingButton" Command="{Binding Path=BasicThresholdingCommand}" Content="Basic Thresholding -->" Margin="5,5" Grid.Row="1" />
-            <Button x:Name="OtsuButton" Command="{Binding Path=StartOtsuMethodCommaand}" Content="Otsu Method Thresholding -->" Grid.Row="2" Margin="5,5" />
+            <Button x:Name="BasicThresholdingButton" Command="{Binding Path=BasicThresholdingCommand}" Content="Iterative Method -->" Margin="5,5" Grid.Row="1" />
+            <Button x:Name="OtsuButton" Command="{Binding Path=StartOtsuMethodCommaand}" Content="Otsu Method -->" Grid.Row="2" Margin="5,5" />
+            <Button x:Name="BernsenButton" Command="{Binding Path=StartBernsenMethodCommaand}" Content="Bernsen Method -->" Grid.Row="3" Margin="5,5" />
+            <Button x:Name="NiblackButton" Command="{Binding Path=StartNiblackMethodCommand}" Content="Niblack Method -->" Grid.Row="4" Margin="5,5" />
+            <Button x:Name="SauvolaButton" Command="{Binding Path=StartSouvolaPietikainenMethodCommand}" Content="Sauvola Method -->" Grid.Row="5" Margin="5,5" />
         </Grid>
 
         <Grid Grid.Column="2">

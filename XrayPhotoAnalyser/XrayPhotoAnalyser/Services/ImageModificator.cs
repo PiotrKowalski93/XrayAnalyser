@@ -82,7 +82,7 @@ namespace XrayPhotoAnalyser.Services
                     wB += histogram[i];               // Weight Background
                     if (wB == 0) continue;
 
-                    wF = totalPixels - wB;                 // Weight Foreground
+                    wF = totalPixels - wB;            // Weight Foreground
                     if (wF == 0) break;
 
                     sumB += (float)(i * histogram[i]);
@@ -126,7 +126,7 @@ namespace XrayPhotoAnalyser.Services
                        
         }
 
-        public async Task<BitmapImage> HistogramBasedSegmentationAsync(Bitmap xrayBitmap)
+        public async Task<BitmapImage> IterativeMethodAsync(Bitmap xrayBitmap)
         {
             return await Task.Run(() =>
             {
@@ -207,6 +207,252 @@ namespace XrayPhotoAnalyser.Services
                             bmap.SetPixel(i, j, Color.Black);
                         }
 
+                    }
+                }
+
+                var changedXrayBitmap = (Bitmap)bmap.Clone();
+                return _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+            });
+
+        }
+
+        public async Task<BitmapImage> BernsenMethodAsync(Bitmap xrayBitmap)
+        {
+            return await Task.Run(() =>
+            {
+                Bitmap temp = xrayBitmap;
+                Bitmap bmap = (Bitmap)temp.Clone();
+                
+                int windowRange = 7;
+                int GlobalT = 190;
+                //int epsilon = 10;
+                int epsilon = 30;
+                //int epsilon = 50;
+
+                int Imax;
+                int Imin;
+
+                int T;          
+
+                for (int i = 0; i < bmap.Height / 2; i++)
+                {
+                    for (int j = 0; j < bmap.Width / 2; j++)
+                    {
+
+                        int startIndeksRow = i - windowRange;
+                        if (startIndeksRow < 0) startIndeksRow = 0;
+
+                        int endIndeksRow = i + windowRange;
+                        if (endIndeksRow > bmap.Height) endIndeksRow = bmap.Height;
+
+                        int startIndeksColumn = j - windowRange;
+                        if (startIndeksColumn < 0) startIndeksColumn = 0;
+
+                        int endIndeksColumn = j + windowRange;
+                        if (endIndeksColumn > bmap.Width) endIndeksColumn = bmap.Width;
+
+                        Imax = Imin = (int)Math.Round(xrayBitmap.GetPixel(j, i).GetBrightness() * 255.0);
+
+                        for (int k = startIndeksRow; k < endIndeksRow; k++)
+                        {
+                            for (int l = startIndeksColumn; l < endIndeksColumn; l++)
+                            {
+                                int tempBrightness = (int)Math.Round(xrayBitmap.GetPixel(l, k).GetBrightness() * 255.0);
+
+                                if (tempBrightness > Imax) Imax = tempBrightness;
+                                if (tempBrightness < Imin) Imin = tempBrightness;
+                            }
+                        }
+
+                        if((Imax - Imin) <= epsilon)
+                        {
+                            T = GlobalT;
+                        }
+                        else
+                        {
+                            T = (Imin + Imax) / 2;
+                        }
+                        
+                        int brightness = (int)Math.Round(bmap.GetPixel(j, i).GetBrightness() * 255.0);
+
+                        if (brightness >= T)
+                        {
+                            bmap.SetPixel(j, i, Color.White);
+                        }
+                        else
+                        {
+                            bmap.SetPixel(j, i, Color.Black);
+                        }
+                    }
+                }
+
+                var changedXrayBitmap = (Bitmap)bmap.Clone();
+                return _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+            });
+
+        }
+
+        public async Task<BitmapImage> NiblackMethodAsync(Bitmap xrayBitmap)
+        {
+            return await Task.Run(() =>
+            {
+                Bitmap temp = xrayBitmap;
+                Bitmap bmap = (Bitmap)temp.Clone();
+
+                //int windowRange = 15;
+                int windowRange = 7;
+                               
+                double mean = 0;
+                //double kParam = -0.5;
+                double kParam = -1.5;
+                double standardDeviation = 0;
+
+                int pixelsInWindow;
+
+                List<int> brightnessInWindow = new List<int>();
+
+                int T;
+
+                for (int i = 0; i < bmap.Height / 2; i++)
+                {
+                    for (int j = 0; j < bmap.Width / 2; j++)
+                    {
+                        int startIndeksRow = i - windowRange;
+                        if (startIndeksRow < 0) startIndeksRow = 0;
+
+                        int endIndeksRow = i + windowRange;
+                        if (endIndeksRow > bmap.Height) endIndeksRow = bmap.Height;
+
+                        int startIndeksColumn = j - windowRange;
+                        if (startIndeksColumn < 0) startIndeksColumn = 0;
+
+                        int endIndeksColumn = j + windowRange;
+                        if (endIndeksColumn > bmap.Width) endIndeksColumn = bmap.Width;
+
+                        brightnessInWindow.Clear();
+                        mean = 0;
+                        standardDeviation = 0;
+                        pixelsInWindow = 0;
+
+                        for (int k = startIndeksRow; k < endIndeksRow; k++)
+                        {
+                            for (int l = startIndeksColumn; l < endIndeksColumn; l++)
+                            {
+                                int tempBrightness = (int)Math.Round(xrayBitmap.GetPixel(l, k).GetBrightness() * 255.0);
+
+                                mean += tempBrightness;
+
+                                brightnessInWindow.Add(tempBrightness);
+
+                                pixelsInWindow++;
+                            }
+                        }
+
+                        mean = mean / pixelsInWindow;
+
+                        foreach (int b in brightnessInWindow)
+                        {
+                            standardDeviation += (b - mean) * (b - mean);
+                        }
+
+                        standardDeviation = Math.Sqrt(standardDeviation / pixelsInWindow);
+
+                        T = (int)(mean + kParam * standardDeviation);
+
+                        int brightness = (int)Math.Round(bmap.GetPixel(j, i).GetBrightness() * 255.0);
+
+                        if (brightness >= T)
+                        {
+                            bmap.SetPixel(j, i, Color.White);
+                        }
+                        else
+                        {
+                            bmap.SetPixel(j, i, Color.Black);
+                        }
+                    }
+                }
+
+                var changedXrayBitmap = (Bitmap)bmap.Clone();
+                return _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+            });
+
+        }
+
+        public async Task<BitmapImage> SouvolaPietikainenMethodAsync(Bitmap xrayBitmap)
+        {
+            return await Task.Run(() =>
+            {
+                Bitmap temp = xrayBitmap;
+                Bitmap bmap = (Bitmap)temp.Clone();
+                
+                int windowRange = 7;
+
+                double mean = 0;
+                double kParam = 0.5;
+                double standardDeviation = 0;
+
+                int pixelsInWindow;
+
+                List<int> brightnessInWindow = new List<int>();
+
+                int T;
+
+                for (int i = 0; i < bmap.Height / 2; i++)
+                {
+                    for (int j = 0; j < bmap.Width / 2; j++)
+                    {
+                        int startIndeksRow = i - windowRange;
+                        if (startIndeksRow < 0) startIndeksRow = 0;
+
+                        int endIndeksRow = i + windowRange;
+                        if (endIndeksRow > bmap.Height) endIndeksRow = bmap.Height;
+
+                        int startIndeksColumn = j - windowRange;
+                        if (startIndeksColumn < 0) startIndeksColumn = 0;
+
+                        int endIndeksColumn = j + windowRange;
+                        if (endIndeksColumn > bmap.Width) endIndeksColumn = bmap.Width;
+
+                        brightnessInWindow.Clear();
+                        mean = 0;
+                        standardDeviation = 0;
+                        pixelsInWindow = 0;
+
+                        for (int k = startIndeksRow; k < endIndeksRow; k++)
+                        {
+                            for (int l = startIndeksColumn; l < endIndeksColumn; l++)
+                            {
+                                int tempBrightness = (int)Math.Round(xrayBitmap.GetPixel(l, k).GetBrightness() * 255.0);
+
+                                mean += tempBrightness;
+
+                                brightnessInWindow.Add(tempBrightness);
+
+                                pixelsInWindow++;
+                            }
+                        }
+
+                        mean = mean / pixelsInWindow;
+
+                        foreach (int b in brightnessInWindow)
+                        {
+                            standardDeviation += (b - mean) * (b - mean);
+                        }
+
+                        standardDeviation = Math.Sqrt(standardDeviation / pixelsInWindow);
+
+                        T = (int) (mean*(1 + kParam*((standardDeviation/128) - 1) ));
+
+                        int brightness = (int)Math.Round(bmap.GetPixel(j, i).GetBrightness() * 255.0);
+
+                        if (brightness >= T)
+                        {
+                            bmap.SetPixel(j, i, Color.White);
+                        }
+                        else
+                        {
+                            bmap.SetPixel(j, i, Color.Black);
+                        }
                     }
                 }
 

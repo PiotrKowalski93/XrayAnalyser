@@ -12,6 +12,9 @@ namespace XrayPhotoAnalyser.Services
     {
         Task<BitmapImage> InvertColoursAsync(Bitmap xrayBitmap);
         Task<BitmapImage> OtsuMethodAsync(Bitmap xrayBitmap);
-        Task<BitmapImage> HistogramBasedSegmentationAsync(Bitmap xrayBitmap);
+        Task<BitmapImage> IterativeMethodAsync(Bitmap xrayBitmap);
+        Task<BitmapImage> BernsenMethodAsync(Bitmap xrayBitmap);
+        Task<BitmapImage> NiblackMethodAsync(Bitmap xrayBitmap);
+        Task<BitmapImage> SouvolaPietikainenMethodAsync(Bitmap xrayBitmap);
     }
 }

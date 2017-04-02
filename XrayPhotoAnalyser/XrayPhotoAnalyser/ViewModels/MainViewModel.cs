@@ -73,6 +73,9 @@ namespace XrayPhotoAnalyser.ViewModels
         public ICommand StartOtsuMethodCommaand { get; set; }
         public ICommand BasicThresholdingCommand { get; set; }
         public ICommand ShowChartsCommand { get; set; }
+        public ICommand StartBernsenMethodCommaand { get; set; }
+        public ICommand StartNiblackMethodCommand { get; set; }
+        public ICommand StartSouvolaPietikainenMethodCommand { get; set; }
 
         private Bitmap xrayBitmap;
         private IBitmapConverter _bitmapConverter;
@@ -88,8 +91,12 @@ namespace XrayPhotoAnalyser.ViewModels
             StartOtsuMethodCommaand = new RelayCommand(StartOtsuMethod);
             BasicThresholdingCommand = new RelayCommand(BasicThresholding);
             ShowChartsCommand = new RelayCommand(ShowCharts);
-        }
+            StartBernsenMethodCommaand = new RelayCommand(BernsenMethod);
+            StartNiblackMethodCommand = new RelayCommand(NiblackMethod);
+            StartSouvolaPietikainenMethodCommand = new RelayCommand(SouvolaPietikainenMethod);
 
+        }
+        
         public void LoadImageAndSaveAsJpg()
         {
             OpenFileDialog fd = new OpenFileDialog();
@@ -99,7 +106,7 @@ namespace XrayPhotoAnalyser.ViewModels
 
             var image = new DicomImage(dcmImagePath);
 
-            string filePath = @"C:\Users\Kowal\Source\Repos\XrayAnalyser\XrayPhotoAnalyser\XrayPhotoAnalyser\Images\test.jpg";
+            string filePath = @"C:\Users\Kowal\Source\Repos\XrayAnalyser\XrayPhotoAnalyser\XrayPhotoAnalyser\Images\" + Guid.NewGuid() + ".jpg";
             image.RenderImage().Save(filePath);
 
             BitmapImage src = new BitmapImage();
@@ -144,7 +151,34 @@ namespace XrayPhotoAnalyser.ViewModels
         {
             IsBusy = true;
 
-            ChangedXrayBitmapImage = await _imageModyficator.HistogramBasedSegmentationAsync(xrayBitmap);
+            ChangedXrayBitmapImage = await _imageModyficator.IterativeMethodAsync(xrayBitmap);
+
+            IsBusy = false;
+        }
+
+        private async void BernsenMethod()
+        {
+            IsBusy = true;
+
+            ChangedXrayBitmapImage = await _imageModyficator.BernsenMethodAsync(xrayBitmap);
+
+            IsBusy = false;
+        }
+
+        private async void NiblackMethod()
+        {
+            IsBusy = true;
+
+            ChangedXrayBitmapImage = await _imageModyficator.NiblackMethodAsync(xrayBitmap);
+
+            IsBusy = false;
+        }
+
+        private async void SouvolaPietikainenMethod()
+        {
+            IsBusy = true;
+
+            ChangedXrayBitmapImage = await _imageModyficator.SouvolaPietikainenMethodAsync(xrayBitmap);
 
             IsBusy = false;
         }
