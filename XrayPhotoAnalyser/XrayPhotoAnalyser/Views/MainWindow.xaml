@@ -33,7 +33,7 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
                 <Button x:Name="LoadImageBtn" Command="{Binding Path=LoadImageCommand}" Content="Load Image" Grid.Row="0" Height="30" Width="160"/>
-                <Button x:Name="SegmentImageBtn" Command="{Binding Path=ShowChartsCommand}" Content="Show Statistics" Grid.Row="1" Height="30" Width="160"/>
+                <Button x:Name="SegmentImageBtn" Command="{Binding Path=ShowChartsCommand}" Content="Show Charts" Grid.Row="1" Height="30" Width="160"/>
             </Grid>
         </Grid>
 
@@ -45,13 +45,70 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Button x:Name="InvertButton" Command="{Binding Path=InvertColorsCommand}" Content="Invert Colors -->" Grid.Row="0" Margin="5,5"/>
+            <Button x:Name="ManualButton" Command="{Binding Path=ManualMethodCommand}" Content="Manual Method Colors -->" Grid.Row="0" Margin="5,5"/>
             <Button x:Name="BasicThresholdingButton" Command="{Binding Path=BasicThresholdingCommand}" Content="Iterative Method -->" Margin="5,5" Grid.Row="1" />
             <Button x:Name="OtsuButton" Command="{Binding Path=StartOtsuMethodCommaand}" Content="Otsu Method -->" Grid.Row="2" Margin="5,5" />
             <Button x:Name="BernsenButton" Command="{Binding Path=StartBernsenMethodCommaand}" Content="Bernsen Method -->" Grid.Row="3" Margin="5,5" />
             <Button x:Name="NiblackButton" Command="{Binding Path=StartNiblackMethodCommand}" Content="Niblack Method -->" Grid.Row="4" Margin="5,5" />
             <Button x:Name="SauvolaButton" Command="{Binding Path=StartSouvolaPietikainenMethodCommand}" Content="Sauvola Method -->" Grid.Row="5" Margin="5,5" />
+
+            <Grid Grid.Row="6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <Label Content="Global T :" Grid.Column="0" Margin="5,5"/>
+                <TextBox x:Name="GlobalT" Grid.Column="1" Margin="5,5" Text="{Binding Path=GlobalT}"/>
+            </Grid>
+
+            <Grid Grid.Row="7">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <Label Content="k :" Grid.Column="0" Margin="5,5"/>
+                <TextBox x:Name="kParam" Grid.Column="1" Margin="5,5" Text="{Binding Path=kParam}"/>
+            </Grid>
+
+            <Grid Grid.Row="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <Label Content="Epsilon :" Grid.Column="0" Margin="5,5"/>
+                <TextBox x:Name="Epsilon" Grid.Column="1" Margin="5,5" Text="{Binding Path=Epsilon}"/>
+            </Grid>
+
+            <Grid Grid.Row="9">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <Label Content="Window Range :" Grid.Column="0" Margin="5,5"/>
+                <TextBox x:Name="WindowRange" Grid.Column="1" Margin="5,5" Text="{Binding Path=WindowRange}"/>
+            </Grid>
+
+            <Grid Grid.Row="11">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <Label Content="Time (mm:ss): " Grid.Column="0" Margin="5,5"/>
+                <TextBlock x:Name="Time" Grid.Column="1" Margin="5,5" Text="{Binding Path=AlgorithmTime}"/>
+            </Grid>
+
         </Grid>
 
         <Grid Grid.Column="2">
@@ -61,13 +118,16 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="10,10" Background="#FFBFBCBC">
-                <Image x:Name="ChangedXrayImage" Source="{Binding Path=ChangedXrayBitmapImage}"/>
-            </StackPanel>
+                <Image x:Name="ChangedXrayImage" Source="{Binding Path=ChangedXrayBitmapImage}"/>                
+            </StackPanel>           
+
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Button x:Name="SegmentImageBtn_2" Command="{Binding Path=ShowChartsCommand}" Content="Show Charts" Grid.Row="1" Height="30" Width="160"/>
+            </Grid>
         </Grid>
-
-        <Grid Grid.Column="2">
-
-        </Grid>
-
     </Grid>
 </Window>

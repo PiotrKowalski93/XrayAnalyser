@@ -110,6 +110,7 @@
     <Compile Include="Converters\BitmapConverter.cs" />
     <Compile Include="Converters\IBitmapConverter.cs" />
     <Compile Include="Models\GlobalData.cs" />
+    <Compile Include="Models\Result.cs" />
     <Compile Include="Services\IImageModificator.cs" />
     <Compile Include="Services\ImageModificator.cs" />
     <Compile Include="ViewModels\ChartsViewModel.cs" />

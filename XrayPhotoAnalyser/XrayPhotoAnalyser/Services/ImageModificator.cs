@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using XrayPhotoAnalyser.Converters;
+using XrayPhotoAnalyser.Models;
 using Drawing = System.Drawing;
 
 namespace XrayPhotoAnalyser.Services
@@ -43,10 +45,14 @@ namespace XrayPhotoAnalyser.Services
             });                      
         }
 
-        public async Task<BitmapImage> OtsuMethodAsync(Bitmap xrayBitmap)
+        public async Task<Result> OtsuMethodAsync(Bitmap xrayBitmap)
         {
             return await Task.Run(() =>
-            {      
+            {
+                Result result = new Result();
+                Stopwatch timer = new Stopwatch();
+                timer.Start();
+
                 // Clonowanie bitmapy
                 Bitmap temp = xrayBitmap;
                 Bitmap bmap = (Bitmap)temp.Clone();
@@ -78,7 +84,7 @@ namespace XrayPhotoAnalyser.Services
                 int threshold = 0;
                 
                 for (int i = 0; i < 256; i++)
-                {
+                {  
                     wB += histogram[i];               // Weight Background
                     if (wB == 0) continue;
 
@@ -120,16 +126,70 @@ namespace XrayPhotoAnalyser.Services
                     }
                 }
 
+                timer.Stop();
+
                 var changedXrayBitmap = (Bitmap)bmap.Clone();
-                return _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+
+                result.SegmentedImage = _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+                result.ExecutionTimer = timer;
+
+                return result;
             });
                        
         }
 
-        public async Task<BitmapImage> IterativeMethodAsync(Bitmap xrayBitmap)
+        public async Task<Result> ManualMethodAsync(Bitmap xrayBitmap, int T)
         {
             return await Task.Run(() =>
             {
+                Result result = new Result();
+                Stopwatch timer = new Stopwatch();
+                timer.Start();
+
+                Bitmap temp = xrayBitmap;
+                Bitmap bmap = (Bitmap)temp.Clone();
+          
+                // Segmentacja przez progowanie
+                for (int i = 0; i < bmap.Width; i++)
+                {
+                    for (int j = 0; j < bmap.Height; j++)
+                    {
+                        int brightness = (int)Math.Round(xrayBitmap.GetPixel(i, j).GetBrightness() * 255.0);
+
+                        if (brightness >= T)
+                        {
+                            bmap.SetPixel(i, j, Color.White);
+                        }
+                        else
+                        {
+                            bmap.SetPixel(i, j, Color.Black);
+                        }
+
+                    }
+                }
+
+                timer.Stop();
+
+                var changedXrayBitmap = (Bitmap)bmap.Clone();
+
+                result.SegmentedImage = _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+                result.ExecutionTimer = timer;
+
+                return result;
+
+                //return _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+            });
+
+        }
+
+        public async Task<Result> IterativeMethodAsync(Bitmap xrayBitmap)
+        {
+            return await Task.Run(() =>
+            {
+                Result result = new Result();
+                Stopwatch timer = new Stopwatch();
+                timer.Start();
+
                 Bitmap temp = xrayBitmap;
                 Bitmap bmap = (Bitmap)temp.Clone();
 
@@ -210,23 +270,35 @@ namespace XrayPhotoAnalyser.Services
                     }
                 }
 
+                timer.Stop();
+
                 var changedXrayBitmap = (Bitmap)bmap.Clone();
-                return _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+
+                result.SegmentedImage = _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+                result.ExecutionTimer = timer;
+
+                return result;
+
+                //return _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
             });
 
         }
 
-        public async Task<BitmapImage> BernsenMethodAsync(Bitmap xrayBitmap)
+        public async Task<Result> BernsenMethodAsync(Bitmap xrayBitmap, int epsilon, int windowRange, int GlobalT)
         {
             return await Task.Run(() =>
             {
+                Result result = new Result();
+                Stopwatch timer = new Stopwatch();
+                timer.Start();
+
                 Bitmap temp = xrayBitmap;
                 Bitmap bmap = (Bitmap)temp.Clone();
-                
-                int windowRange = 7;
-                int GlobalT = 190;
+
+                int range = (windowRange - 1) / 2;
+                //int GlobalT = 190;
                 //int epsilon = 10;
-                int epsilon = 30;
+                //int epsilon = 30;
                 //int epsilon = 50;
 
                 int Imax;
@@ -234,21 +306,21 @@ namespace XrayPhotoAnalyser.Services
 
                 int T;          
 
-                for (int i = 0; i < bmap.Height / 2; i++)
+                for (int i = 0; i < bmap.Height; i++)
                 {
-                    for (int j = 0; j < bmap.Width / 2; j++)
+                    for (int j = 0; j < bmap.Width; j++)
                     {
 
-                        int startIndeksRow = i - windowRange;
+                        int startIndeksRow = i - range;
                         if (startIndeksRow < 0) startIndeksRow = 0;
 
-                        int endIndeksRow = i + windowRange;
+                        int endIndeksRow = i + range;
                         if (endIndeksRow > bmap.Height) endIndeksRow = bmap.Height;
 
-                        int startIndeksColumn = j - windowRange;
+                        int startIndeksColumn = j - range;
                         if (startIndeksColumn < 0) startIndeksColumn = 0;
 
-                        int endIndeksColumn = j + windowRange;
+                        int endIndeksColumn = j + range;
                         if (endIndeksColumn > bmap.Width) endIndeksColumn = bmap.Width;
 
                         Imax = Imin = (int)Math.Round(xrayBitmap.GetPixel(j, i).GetBrightness() * 255.0);
@@ -286,25 +358,36 @@ namespace XrayPhotoAnalyser.Services
                     }
                 }
 
+                timer.Stop();
+
                 var changedXrayBitmap = (Bitmap)bmap.Clone();
-                return _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+
+                result.SegmentedImage = _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+                result.ExecutionTimer = timer;
+
+                return result;
             });
 
         }
 
-        public async Task<BitmapImage> NiblackMethodAsync(Bitmap xrayBitmap)
+        public async Task<Result> NiblackMethodAsync(Bitmap xrayBitmap, double kParam, int windowRange)
         {
             return await Task.Run(() =>
             {
+                Result result = new Result();
+                Stopwatch timer = new Stopwatch();
+                timer.Start();
+
                 Bitmap temp = xrayBitmap;
                 Bitmap bmap = (Bitmap)temp.Clone();
 
                 //int windowRange = 15;
-                int windowRange = 7;
-                               
+                //int windowRange = 7;
+                int range = (windowRange - 1) / 2;
+
                 double mean = 0;
                 //double kParam = -0.5;
-                double kParam = -1.5;
+                //double kParam = -1.5;
                 double standardDeviation = 0;
 
                 int pixelsInWindow;
@@ -313,20 +396,20 @@ namespace XrayPhotoAnalyser.Services
 
                 int T;
 
-                for (int i = 0; i < bmap.Height / 2; i++)
+                for (int i = 0; i < bmap.Height; i++)
                 {
-                    for (int j = 0; j < bmap.Width / 2; j++)
+                    for (int j = 0; j < bmap.Width; j++)
                     {
-                        int startIndeksRow = i - windowRange;
+                        int startIndeksRow = i - range;
                         if (startIndeksRow < 0) startIndeksRow = 0;
 
-                        int endIndeksRow = i + windowRange;
+                        int endIndeksRow = i + range;
                         if (endIndeksRow > bmap.Height) endIndeksRow = bmap.Height;
 
-                        int startIndeksColumn = j - windowRange;
+                        int startIndeksColumn = j - range;
                         if (startIndeksColumn < 0) startIndeksColumn = 0;
 
-                        int endIndeksColumn = j + windowRange;
+                        int endIndeksColumn = j + range;
                         if (endIndeksColumn > bmap.Width) endIndeksColumn = bmap.Width;
 
                         brightnessInWindow.Clear();
@@ -372,23 +455,34 @@ namespace XrayPhotoAnalyser.Services
                     }
                 }
 
+                timer.Stop();
+
                 var changedXrayBitmap = (Bitmap)bmap.Clone();
-                return _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+
+                result.SegmentedImage = _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+                result.ExecutionTimer = timer;
+
+                return result;
             });
 
         }
 
-        public async Task<BitmapImage> SouvolaPietikainenMethodAsync(Bitmap xrayBitmap)
+        public async Task<Result> SouvolaPietikainenMethodAsync(Bitmap xrayBitmap, double kParam, int windowRange)
         {
             return await Task.Run(() =>
             {
+                Result result = new Result();
+                Stopwatch timer = new Stopwatch();
+                timer.Start();
+
                 Bitmap temp = xrayBitmap;
                 Bitmap bmap = (Bitmap)temp.Clone();
-                
-                int windowRange = 7;
+
+                //int windowRange = 7;
+                int range = (windowRange - 1) / 2;
 
                 double mean = 0;
-                double kParam = 0.5;
+                //double kParam = 0.5;
                 double standardDeviation = 0;
 
                 int pixelsInWindow;
@@ -397,20 +491,20 @@ namespace XrayPhotoAnalyser.Services
 
                 int T;
 
-                for (int i = 0; i < bmap.Height / 2; i++)
+                for (int i = 0; i < bmap.Height; i++)
                 {
-                    for (int j = 0; j < bmap.Width / 2; j++)
+                    for (int j = 0; j < bmap.Width; j++)
                     {
-                        int startIndeksRow = i - windowRange;
+                        int startIndeksRow = i - range;
                         if (startIndeksRow < 0) startIndeksRow = 0;
 
-                        int endIndeksRow = i + windowRange;
+                        int endIndeksRow = i + range;
                         if (endIndeksRow > bmap.Height) endIndeksRow = bmap.Height;
 
-                        int startIndeksColumn = j - windowRange;
+                        int startIndeksColumn = j - range;
                         if (startIndeksColumn < 0) startIndeksColumn = 0;
 
-                        int endIndeksColumn = j + windowRange;
+                        int endIndeksColumn = j + range;
                         if (endIndeksColumn > bmap.Width) endIndeksColumn = bmap.Width;
 
                         brightnessInWindow.Clear();
@@ -456,8 +550,14 @@ namespace XrayPhotoAnalyser.Services
                     }
                 }
 
+                timer.Stop();
+
                 var changedXrayBitmap = (Bitmap)bmap.Clone();
-                return _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+
+                result.SegmentedImage = _bitmapConverter.BitmapToBitmapImage(changedXrayBitmap);
+                result.ExecutionTimer = timer;
+
+                return result;
             });
 
         }

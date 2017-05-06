@@ -3,6 +3,7 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
 using Microsoft.Win32;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Windows.Controls;
@@ -27,6 +28,81 @@ namespace XrayPhotoAnalyser.ViewModels
     public class MainViewModel : ViewModelBase
     {
         #region Properties
+        private Result algorithmResult;
+
+        private string algorithmTime;
+        public string AlgorithmTime
+        {
+            get
+            {
+                return algorithmTime;
+            }
+            set
+            {
+                algorithmTime = value;
+                RaisePropertyChanged("AlgorithmTime");
+            }
+        }
+
+        private BitmapImage sourceImageBitmap = new BitmapImage();
+        private BitmapImage changesImageBitmap = new BitmapImage();
+
+        private double k;
+        public double kParam
+        {
+            get
+            {
+                return k;
+            }
+            set
+            {
+                k = value;
+                RaisePropertyChanged("kParam");
+            }
+        }
+
+        private int globalT;
+        public int GlobalT
+        {
+            get
+            {
+                return globalT;
+            }
+            set
+            {
+                globalT = value;
+                RaisePropertyChanged("GlobalT");
+            }
+        }
+
+        private int epsilon;
+        public int Epsilon
+        {
+            get
+            {
+                return epsilon;
+            }
+            set
+            {
+                epsilon = value;
+                RaisePropertyChanged("Epsilon");
+            }
+        }
+
+        private int windowRange;
+        public int WindowRange
+        {
+            get
+            {
+                return windowRange;
+            }
+            set
+            {
+                windowRange = value;
+                RaisePropertyChanged("WindowRange");
+            }
+        }
+
         private BitmapImage changedXrayBitmapImage;
         public BitmapImage ChangedXrayBitmapImage {
             get
@@ -69,10 +145,11 @@ namespace XrayPhotoAnalyser.ViewModels
         #endregion
 
         public ICommand LoadImageCommand { get; set; }
-        public ICommand InvertColorsCommand { get; set; }
+        public ICommand ManualMethodCommand { get; set; }
         public ICommand StartOtsuMethodCommaand { get; set; }
         public ICommand BasicThresholdingCommand { get; set; }
         public ICommand ShowChartsCommand { get; set; }
+        public ICommand ShowSegmentedChartsCommand { get; set; }
         public ICommand StartBernsenMethodCommaand { get; set; }
         public ICommand StartNiblackMethodCommand { get; set; }
         public ICommand StartSouvolaPietikainenMethodCommand { get; set; }
@@ -87,10 +164,11 @@ namespace XrayPhotoAnalyser.ViewModels
             _imageModyficator = imageModificator;
 
             LoadImageCommand = new RelayCommand(LoadImageAndSaveAsJpg);
-            InvertColorsCommand = new RelayCommand(InvertColours);
+            ManualMethodCommand = new RelayCommand(ManualMethod);
             StartOtsuMethodCommaand = new RelayCommand(StartOtsuMethod);
             BasicThresholdingCommand = new RelayCommand(BasicThresholding);
             ShowChartsCommand = new RelayCommand(ShowCharts);
+            ShowSegmentedChartsCommand = new RelayCommand(ShowSegmentedCharts);
             StartBernsenMethodCommaand = new RelayCommand(BernsenMethod);
             StartNiblackMethodCommand = new RelayCommand(NiblackMethod);
             StartSouvolaPietikainenMethodCommand = new RelayCommand(SouvolaPietikainenMethod);
@@ -119,21 +197,37 @@ namespace XrayPhotoAnalyser.ViewModels
 
             GlobalData.XrayBitmap = src;
 
+            sourceImageBitmap = src;
+
             GlobalData.SavedJPGImagePath = filePath;
             LoadedImage = filePath;
         }
                  
         private void ShowCharts()
         {
+            GlobalData.XrayBitmap = sourceImageBitmap;
+
             ChartsView chv = new ChartsView();
             chv.Show();
         }
 
-        private async void InvertColours()
+        private void ShowSegmentedCharts()
+        {
+            GlobalData.XrayBitmap = ChangedXrayBitmapImage;
+
+            ChartsView chv = new ChartsView();
+            chv.Show();
+        }
+
+        private async void ManualMethod()
         {
             IsBusy = true;
 
-            ChangedXrayBitmapImage = await _imageModyficator.InvertColoursAsync(xrayBitmap);
+            algorithmResult = await _imageModyficator.ManualMethodAsync(xrayBitmap, GlobalT);
+
+            ChangedXrayBitmapImage = algorithmResult.SegmentedImage;
+            SetTime(algorithmResult.ExecutionTimer);
+
 
             IsBusy = false;
         }
@@ -142,7 +236,10 @@ namespace XrayPhotoAnalyser.ViewModels
         {
             IsBusy = true;
 
-            ChangedXrayBitmapImage = await _imageModyficator.OtsuMethodAsync(xrayBitmap);
+            algorithmResult = await _imageModyficator.OtsuMethodAsync(xrayBitmap);
+
+            ChangedXrayBitmapImage = algorithmResult.SegmentedImage;
+            SetTime(algorithmResult.ExecutionTimer);
 
             IsBusy = false;
         }
@@ -151,7 +248,10 @@ namespace XrayPhotoAnalyser.ViewModels
         {
             IsBusy = true;
 
-            ChangedXrayBitmapImage = await _imageModyficator.IterativeMethodAsync(xrayBitmap);
+            algorithmResult = await _imageModyficator.IterativeMethodAsync(xrayBitmap);
+
+            ChangedXrayBitmapImage = algorithmResult.SegmentedImage;
+            SetTime(algorithmResult.ExecutionTimer);
 
             IsBusy = false;
         }
@@ -160,7 +260,10 @@ namespace XrayPhotoAnalyser.ViewModels
         {
             IsBusy = true;
 
-            ChangedXrayBitmapImage = await _imageModyficator.BernsenMethodAsync(xrayBitmap);
+            algorithmResult = await _imageModyficator.BernsenMethodAsync(xrayBitmap, epsilon, windowRange, globalT);
+
+            ChangedXrayBitmapImage = algorithmResult.SegmentedImage;
+            SetTime(algorithmResult.ExecutionTimer);
 
             IsBusy = false;
         }
@@ -169,7 +272,10 @@ namespace XrayPhotoAnalyser.ViewModels
         {
             IsBusy = true;
 
-            ChangedXrayBitmapImage = await _imageModyficator.NiblackMethodAsync(xrayBitmap);
+            algorithmResult = await _imageModyficator.NiblackMethodAsync(xrayBitmap, k, windowRange);
+
+            ChangedXrayBitmapImage = algorithmResult.SegmentedImage;
+            SetTime(algorithmResult.ExecutionTimer);
 
             IsBusy = false;
         }
@@ -178,9 +284,21 @@ namespace XrayPhotoAnalyser.ViewModels
         {
             IsBusy = true;
 
-            ChangedXrayBitmapImage = await _imageModyficator.SouvolaPietikainenMethodAsync(xrayBitmap);
+            algorithmResult = await _imageModyficator.SouvolaPietikainenMethodAsync(xrayBitmap, k, windowRange);
+
+            ChangedXrayBitmapImage = algorithmResult.SegmentedImage;
+            SetTime(algorithmResult.ExecutionTimer);
 
             IsBusy = false;
+        }
+
+        private void SetTime(Stopwatch timer)
+        {
+            TimeSpan ts = timer.Elapsed;
+
+            string formatedTime = string.Format("{0}:{1}", Math.Floor(ts.TotalMinutes), ts.ToString("ss\\.ff"));
+
+            AlgorithmTime = formatedTime;
         }
 
     }
